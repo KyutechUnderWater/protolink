@@ -34,7 +34,6 @@ void Publisher::sendEncodedText(const std::string & encoded_text)
 }
 }  // namespace udp_protocol
 
-
 // namespace mqtt_protocol
 // {
 // Publisher::Publisher(
