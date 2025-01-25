@@ -15,6 +15,7 @@
 #include <mqtt/async_client.h>
 
 #include <boost/asio.hpp>
+#include <conversion_std_msgs__String.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <thread>
 

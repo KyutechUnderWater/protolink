@@ -66,7 +66,10 @@ Subscriber::Subscriber(
 
 void Subscriber::handler(const boost::system::error_code & /*error*/, size_t /*bytes_transferred*/)
 {
-  receive_data_;
+  size_t len = 64;
+  std::string s(reinterpret_cast<char const *>(receive_data_), len);
+  protolink__std_msgs__String::std_msgs__String proto;
+  proto.SerializeToString(&s);
 }
 }  // namespace serial_protocol
 
