@@ -34,6 +34,17 @@ void Publisher::sendEncodedText(const std::string & encoded_text)
 }
 }  // namespace udp_protocol
 
+namespace serial_protocol
+{
+Publisher::Publisher(
+  boost::asio::io_service & io_service, const std::string & device_file, const uint16_t baud_rate,
+  const rclcpp::Logger & logger)
+: serial(io_service, device_file), logger(logger)
+{
+  serial.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+}
+}  // namespace serial_protocol
+
 // namespace mqtt_protocol
 // {
 // Publisher::Publisher(

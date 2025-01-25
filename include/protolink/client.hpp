@@ -45,6 +45,19 @@ private:
 };
 }  // namespace udp_protocol
 
+namespace serial_protocol
+{
+class Publisher
+{
+public:
+  explicit Publisher(
+    boost::asio::io_service & io_service, const std::string & device_file, const uint16_t baud_rate,
+    const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"));
+  boost::asio::serial_port serial;
+  const rclcpp::Logger logger;
+};
+}  // namespace serial_protocol
+
 // namespace mqtt_protocol
 // {
 // const char * LWT_PAYLOAD = "Last will and testament.";
