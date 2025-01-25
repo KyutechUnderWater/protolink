@@ -77,6 +77,8 @@ class Subscriber
 
 private:
   boost::asio::serial_port serial_;
+  unsigned char receive_data_[64];
+  void handler(const boost::system::error_code & error, size_t bytes_transferred);
 };
 }  // namespace serial_protocol
 

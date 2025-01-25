@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <boost/thread/thread.hpp>
 #include <protolink/client.hpp>
 
 namespace protolink
@@ -55,6 +56,17 @@ Subscriber::Subscriber(
 : logger(logger), serial_(io_service, device_file)
 {
   serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+  constexpr int receive_size = 8;
+  boost::asio::async_read(
+    serial_, boost::asio::buffer(receive_data_), boost::asio::transfer_exactly(receive_size),
+    boost::bind(
+      &Subscriber::handler, this, boost::asio::placeholders::error,
+      boost::asio::placeholders::bytes_transferred));
+}
+
+void Subscriber::handler(const boost::system::error_code & /*error*/, size_t /*bytes_transferred*/)
+{
+  receive_data_;
 }
 }  // namespace serial_protocol
 
