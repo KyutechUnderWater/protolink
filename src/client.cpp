@@ -39,9 +39,14 @@ namespace serial_protocol
 Publisher::Publisher(
   boost::asio::io_service & io_service, const std::string & device_file, const uint16_t baud_rate,
   const rclcpp::Logger & logger)
-: serial(io_service, device_file), logger(logger)
+: logger(logger), serial_(io_service, device_file)
 {
-  serial.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+  serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+}
+
+void Publisher::sendEncodedText(const std::string & encoded_text)
+{
+  boost::asio::write(serial_, boost::asio::buffer(encoded_text));
 }
 }  // namespace serial_protocol
 

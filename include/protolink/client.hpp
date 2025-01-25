@@ -53,8 +53,19 @@ public:
   explicit Publisher(
     boost::asio::io_service & io_service, const std::string & device_file, const uint16_t baud_rate,
     const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"));
-  boost::asio::serial_port serial;
   const rclcpp::Logger logger;
+
+  template <typename Proto>
+  void send(const Proto & message)
+  {
+    std::string encoded_text = "";
+    message.SerializeToString(&encoded_text);
+    sendEncodedText(encoded_text);
+  }
+
+private:
+  boost::asio::serial_port serial_;
+  void sendEncodedText(const std::string & encoded_text);
 };
 }  // namespace serial_protocol
 
