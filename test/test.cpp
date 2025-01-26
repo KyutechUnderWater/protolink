@@ -52,7 +52,7 @@ TEST(Serial, buildtest_subscriber)
   try {
     boost::asio::io_service ios;
     protolink::serial_protocol::Subscriber<protolink__std_msgs__String::std_msgs__String, 256>
-      subscriber(ios, "/dev/ttyACM0", 9600);
+      subscriber(ios, "/dev/ttyACM0", 9600, [](const auto &) {});
   } catch (...) {
   }
 }

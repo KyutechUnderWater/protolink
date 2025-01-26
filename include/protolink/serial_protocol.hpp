@@ -59,8 +59,9 @@ class Subscriber
 public:
   explicit Subscriber(
     boost::asio::io_service & io_service, const std::string & device_file, const uint16_t baud_rate,
+    std::function<void(const Proto &)> callback,
     const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"))
-  : logger(logger), serial_(io_service, device_file)
+  : logger(logger), serial_(io_service, device_file), callback_(callback)
   {
     serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
     serial_.async_read_some(
@@ -73,6 +74,7 @@ public:
 
 private:
   boost::asio::serial_port serial_;
+  std::function<void(Proto)> callback_;
   boost::array<char, ReceiveBufferSize> receive_data_;
   void handler(const boost::system::error_code & error, size_t bytes_transferred)
   {
@@ -84,6 +86,7 @@ private:
     std::string data(receive_data_.data(), bytes_transferred);
     Proto proto;
     proto.ParseFromString(data);
+    callback_(proto);
   }
 };
 }  // namespace serial_protocol
