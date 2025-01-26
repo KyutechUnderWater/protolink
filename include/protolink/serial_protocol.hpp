@@ -53,7 +53,7 @@ private:
   }
 };
 
-template <typename Proto>
+template <typename Proto, int ReceiveBufferSize = 128>
 class Subscriber
 {
 public:
@@ -73,12 +73,17 @@ public:
 
 private:
   boost::asio::serial_port serial_;
-  boost::array<char, 128> receive_data_;
-  void handler(const boost::system::error_code & /*error*/, size_t bytes_transferred)
+  boost::array<char, ReceiveBufferSize> receive_data_;
+  void handler(const boost::system::error_code & error, size_t bytes_transferred)
   {
+    if (error != boost::system::errc::success) {
+      RCLCPP_ERROR_STREAM(
+        logger, "Error code : " << error.value() << "\nError Message : " << error.message());
+      return;
+    }
     std::string data(receive_data_.data(), bytes_transferred);
     Proto proto;
-    proto.SerializeToString(&data);
+    proto.ParseFromString(data);
   }
 };
 }  // namespace serial_protocol

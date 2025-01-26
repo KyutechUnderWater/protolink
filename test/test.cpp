@@ -51,8 +51,8 @@ TEST(Serial, buildtest_subscriber)
   /// This test case may access a device file that does not exist, so only verify that it can be built
   try {
     boost::asio::io_service ios;
-    protolink::serial_protocol::Subscriber<protolink__std_msgs__String::std_msgs__String> publisher(
-      ios, "/dev/ttyACM0", 9600);
+    protolink::serial_protocol::Subscriber<protolink__std_msgs__String::std_msgs__String, 256>
+      subscriber(ios, "/dev/ttyACM0", 9600);
   } catch (...) {
   }
 }
