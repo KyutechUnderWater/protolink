@@ -12,4 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <protolink/client.hpp>
+#include <protolink/serial_protocol.hpp>

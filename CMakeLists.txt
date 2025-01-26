@@ -13,8 +13,9 @@ ament_auto_find_build_dependencies()
 
 ament_auto_add_library(protolink SHARED
   src/client.cpp
+  src/serial_protocol.cpp
+  src/udp_protocol.cpp
 )
-target_link_libraries(protolink )
 
 install(
   DIRECTORY cmake
