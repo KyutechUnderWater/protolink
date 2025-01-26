@@ -16,6 +16,7 @@
 #define PROTOLINK__SERIAL_PROTOCOL_HPP_
 
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 namespace protolink
@@ -51,17 +52,35 @@ private:
   }
 };
 
+template <typename Proto>
 class Subscriber
 {
+public:
   explicit Subscriber(
     boost::asio::io_service & io_service, const std::string & device_file, const uint16_t baud_rate,
-    const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"));
+    const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"))
+  : logger(logger), serial_(io_service, device_file)
+  {
+    serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+    constexpr int receive_size = 8;
+    boost::asio::async_read(
+      serial_, boost::asio::buffer(receive_data_), boost::asio::transfer_exactly(receive_size),
+      boost::bind(
+        &Subscriber::handler, this, boost::asio::placeholders::error,
+        boost::asio::placeholders::bytes_transferred));
+  }
   const rclcpp::Logger logger;
 
 private:
   boost::asio::serial_port serial_;
   unsigned char receive_data_[64];
-  void handler(const boost::system::error_code & error, size_t bytes_transferred);
+  void handler(const boost::system::error_code & /*error*/, size_t /*bytes_transferred*/)
+  {
+    size_t len = 64;
+    std::string s(reinterpret_cast<char const *>(receive_data_), len);
+    Proto proto;
+    proto.SerializeToString(&s);
+  }
 };
 }  // namespace serial_protocol
 }  // namespace protolink

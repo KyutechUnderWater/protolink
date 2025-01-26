@@ -35,11 +35,23 @@ TEST(UDP, send_proto)
 
 // TEST(MQTT, connect) { protolink::mqtt_protocol::Publisher("127.0.0.1", "protolink", "hello", 1); }
 
-TEST(Serial, build_test)
+TEST(Serial, buildtest_publisher)
 {
+  /// This test case may access a device file that does not exist, so only verify that it can be built
   try {
     boost::asio::io_service ios;
     protolink::serial_protocol::Publisher<protolink__std_msgs__String::std_msgs__String> publisher(
+      ios, "/dev/ttyACM0", 9600);
+  } catch (...) {
+  }
+}
+
+TEST(Serial, buildtest_subscriber)
+{
+  /// This test case may access a device file that does not exist, so only verify that it can be built
+  try {
+    boost::asio::io_service ios;
+    protolink::serial_protocol::Subscriber<protolink__std_msgs__String::std_msgs__String> publisher(
       ios, "/dev/ttyACM0", 9600);
   } catch (...) {
   }
