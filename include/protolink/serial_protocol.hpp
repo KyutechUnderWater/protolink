@@ -15,6 +15,7 @@
 #ifndef PROTOLINK__SERIAL_PROTOCOL_HPP_
 #define PROTOLINK__SERIAL_PROTOCOL_HPP_
 
+#include <boost/array.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -62,9 +63,8 @@ public:
   : logger(logger), serial_(io_service, device_file)
   {
     serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
-    constexpr int receive_size = 8;
-    boost::asio::async_read(
-      serial_, boost::asio::buffer(receive_data_), boost::asio::transfer_exactly(receive_size),
+    serial_.async_read_some(
+      boost::asio::buffer(receive_data_),
       boost::bind(
         &Subscriber::handler, this, boost::asio::placeholders::error,
         boost::asio::placeholders::bytes_transferred));
@@ -73,13 +73,12 @@ public:
 
 private:
   boost::asio::serial_port serial_;
-  unsigned char receive_data_[64];
-  void handler(const boost::system::error_code & /*error*/, size_t /*bytes_transferred*/)
+  boost::array<char, 128> receive_data_;
+  void handler(const boost::system::error_code & /*error*/, size_t bytes_transferred)
   {
-    size_t len = 64;
-    std::string s(reinterpret_cast<char const *>(receive_data_), len);
+    std::string data(receive_data_.data(), bytes_transferred);
     Proto proto;
-    proto.SerializeToString(&s);
+    proto.SerializeToString(&data);
   }
 };
 }  // namespace serial_protocol
