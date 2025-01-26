@@ -22,15 +22,20 @@ namespace protolink
 {
 namespace serial_protocol
 {
+template <typename Proto>
 class Publisher
 {
 public:
   explicit Publisher(
     boost::asio::io_service & io_service, const std::string & device_file, const uint16_t baud_rate,
-    const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"));
+    const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"))
+  : logger(logger), serial_(io_service, device_file)
+  {
+    serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+  }
+
   const rclcpp::Logger logger;
 
-  template <typename Proto>
   void send(const Proto & message)
   {
     std::string encoded_text = "";
@@ -40,7 +45,10 @@ public:
 
 private:
   boost::asio::serial_port serial_;
-  void sendEncodedText(const std::string & encoded_text);
+  void sendEncodedText(const std::string & encoded_text)
+  {
+    boost::asio::write(serial_, boost::asio::buffer(encoded_text));
+  }
 };
 
 class Subscriber

@@ -35,6 +35,16 @@ TEST(UDP, send_proto)
 
 // TEST(MQTT, connect) { protolink::mqtt_protocol::Publisher("127.0.0.1", "protolink", "hello", 1); }
 
+TEST(Serial, build_test)
+{
+  try {
+    boost::asio::io_service ios;
+    protolink::serial_protocol::Publisher<protolink__std_msgs__String::std_msgs__String> publisher(
+      ios, "/dev/ttyACM0", 9600);
+  } catch (...) {
+  }
+}
+
 using AdaptedType =
   rclcpp::TypeAdapter<protolink__std_msgs__String::std_msgs__String, std_msgs::msg::String>;
 
