@@ -12,26 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <boost/thread/thread.hpp>
 #include <protolink/udp_protocol.hpp>
-
-namespace protolink
-{
-namespace udp_protocol
-{
-Publisher::Publisher(
-  boost::asio::io_service & io_service, const std::string & ip_address, const uint16_t port,
-  const uint16_t from_port, const rclcpp::Logger & logger)
-: endpoint(boost::asio::ip::udp::endpoint(
-    boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(ip_address), port))),
-  logger(logger),
-  sock_(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), from_port))
-{
-}
-
-void Publisher::sendEncodedText(const std::string & encoded_text)
-{
-  sock_.send_to(boost::asio::buffer(encoded_text), endpoint);
-}
-}  // namespace udp_protocol
-}  // namespace protolink

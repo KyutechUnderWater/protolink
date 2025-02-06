@@ -27,10 +27,18 @@ TEST(UDP, send_proto)
 {
   // std::shared_ptr<boost::asio::io_service> io = std::make_shared<boost::asio::io_service>();
   boost::asio::io_service ios;
-  auto client = protolink::udp_protocol::Publisher(ios, "127.0.0.1", 8000, 8000);
+  auto client = protolink::udp_protocol::Publisher<protolink__std_msgs__String::std_msgs__String>(
+    ios, "127.0.0.1", 8000, 8000);
   // protolink__std_msgs__String::std_msgs__String string_msg;
   // string_msg.set_data("Hello World");
   // client.send(string_msg);
+}
+
+TEST(UDP, recieve_proto)
+{
+  boost::asio::io_service ios;
+  auto client = protolink::udp_protocol::Subscriber<protolink__std_msgs__String::std_msgs__String>(
+    ios, 8000, [](const auto &) {});
 }
 
 // TEST(MQTT, connect) { protolink::mqtt_protocol::Publisher("127.0.0.1", "protolink", "hello", 1); }

@@ -16,22 +16,29 @@
 #define PROTOLINK__UDP_PROTOCOL_HPP_
 
 #include <boost/asio.hpp>
+#include <boost/thread/thread.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 namespace protolink
 {
 namespace udp_protocol
 {
+template <typename Proto>
 class Publisher
 {
 public:
   explicit Publisher(
     boost::asio::io_service & io_service, const std::string & ip_address, const uint16_t port,
-    const uint16_t from_port, const rclcpp::Logger & logger = rclcpp::get_logger("protolink_udp"));
+    const uint16_t from_port, const rclcpp::Logger & logger = rclcpp::get_logger("protolink_udp"))
+  : endpoint(boost::asio::ip::udp::endpoint(
+      boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(ip_address), port))),
+    logger(logger),
+    sock_(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), from_port))
+  {
+  }
   const boost::asio::ip::udp::endpoint endpoint;
   const rclcpp::Logger logger;
 
-  template <typename Proto>
   void send(const Proto & message)
   {
     std::string encoded_text = "";
@@ -40,8 +47,49 @@ public:
   }
 
 private:
-  void sendEncodedText(const std::string & encoded_text);
+  void sendEncodedText(const std::string & encoded_text)
+  {
+    sock_.send_to(boost::asio::buffer(encoded_text), endpoint);
+  }
   boost::asio::ip::udp::socket sock_;
+};
+
+template <typename Proto, int ReceiveBufferSize = 128>
+class Subscriber
+{
+public:
+  explicit Subscriber(
+    boost::asio::io_service & io_service, const uint16_t port,
+    std::function<void(const Proto &)> callback,
+    const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"))
+  : logger(logger),
+    sock_(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port)),
+    callback_(callback)
+  {
+    sock_.async_receive(
+      boost::asio::buffer(receive_data_),
+      boost::bind(
+        &Subscriber::handler, this, boost::asio::placeholders::error,
+        boost::asio::placeholders::bytes_transferred));
+  }
+  const rclcpp::Logger logger;
+
+private:
+  boost::asio::ip::udp::socket sock_;
+  std::function<void(Proto)> callback_;
+  boost::array<char, ReceiveBufferSize> receive_data_;
+  void handler(const boost::system::error_code & error, size_t bytes_transferred)
+  {
+    if (error != boost::system::errc::success) {
+      RCLCPP_ERROR_STREAM(
+        logger, "Error code : " << error.value() << "\nError Message : " << error.message());
+      return;
+    }
+    std::string data(receive_data_.data(), bytes_transferred);
+    Proto proto;
+    proto.ParseFromString(data);
+    callback_(proto);
+  }
 };
 }  // namespace udp_protocol
 }  // namespace protolink
