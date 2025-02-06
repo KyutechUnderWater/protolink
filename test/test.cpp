@@ -34,6 +34,13 @@ TEST(UDP, send_proto)
   // client.send(string_msg);
 }
 
+TEST(UDP, recieve_proto)
+{
+  boost::asio::io_service ios;
+  auto client = protolink::udp_protocol::Subscriber<protolink__std_msgs__String::std_msgs__String>(
+    ios, 8000, [](const auto &) {});
+}
+
 // TEST(MQTT, connect) { protolink::mqtt_protocol::Publisher("127.0.0.1", "protolink", "hello", 1); }
 
 TEST(Serial, buildtest_publisher)
