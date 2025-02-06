@@ -16,22 +16,29 @@
 #define PROTOLINK__UDP_PROTOCOL_HPP_
 
 #include <boost/asio.hpp>
+#include <boost/thread/thread.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 namespace protolink
 {
 namespace udp_protocol
 {
+template <typename Proto>
 class Publisher
 {
 public:
   explicit Publisher(
     boost::asio::io_service & io_service, const std::string & ip_address, const uint16_t port,
-    const uint16_t from_port, const rclcpp::Logger & logger = rclcpp::get_logger("protolink_udp"));
+    const uint16_t from_port, const rclcpp::Logger & logger = rclcpp::get_logger("protolink_udp"))
+  : endpoint(boost::asio::ip::udp::endpoint(
+      boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(ip_address), port))),
+    logger(logger),
+    sock_(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), from_port))
+  {
+  }
   const boost::asio::ip::udp::endpoint endpoint;
   const rclcpp::Logger logger;
 
-  template <typename Proto>
   void send(const Proto & message)
   {
     std::string encoded_text = "";
@@ -40,7 +47,10 @@ public:
   }
 
 private:
-  void sendEncodedText(const std::string & encoded_text);
+  void sendEncodedText(const std::string & encoded_text)
+  {
+    sock_.send_to(boost::asio::buffer(encoded_text), endpoint);
+  }
   boost::asio::ip::udp::socket sock_;
 };
 }  // namespace udp_protocol
