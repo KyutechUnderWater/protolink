@@ -93,7 +93,44 @@ function(add_protolink_message PROTO_FILE MESSAGE_NAME)
       DESTINATION share/${PROJECT_NAME}/nanopb_gen/STM32CubeIDE/Src/proto)
   endfunction()
 
+  function(generate_nanopb_for_platformio PROTO_FILE MESSAGE_NAME)
+    set(GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/nanopb_gen/platformio/protolink_msgs)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/nanopb_gen)
+    file(MAKE_DIRECTORY ${GENERATED_DIR})
+
+    file(COPY ${PROTO_FILE} DESTINATION ${GENERATED_DIR}/proto)
+    get_filename_component(PROTO_FILENAME ${PROTO_FILE} NAME)
+
+    add_custom_command(
+      OUTPUT ${GENERATED_DIR}/${MESSAGE_NAME}.pb.c ${GENERATED_DIR}/${MESSAGE_NAME}.pb.h
+      COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_BINARY_DIR}/nanopb/src/nanopb/generator python3 
+        ${NANOPB_GENERATOR_PY} --output-dir=${GENERATED_DIR} proto/${PROTO_FILENAME}
+      DEPENDS nanopb ${PROTO_FILE}
+      WORKING_DIRECTORY ${GENERATED_DIR}
+    )
+
+    message(NOTICE "Files for nanopb have been generated. 
+      Message name : ${MESSAGE_NAME}
+      Please copy the files from the directory below lib in to the development environment of the microcontroller. (PlatformIO)
+      ${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/nanopb_gen/platformio")
+    
+    add_custom_target(${MESSAGE_NAME}_nanopb_platformio ALL DEPENDS ${GENERATED_DIR}/${MESSAGE_NAME}.pb.c ${GENERATED_DIR}/${MESSAGE_NAME}.pb.h)
+    if(TARGET ${MESSAGE_NAME}__from_ros)
+      add_dependencies(${MESSAGE_NAME}_nanopb_platformio ${MESSAGE_NAME}__from_ros)
+    else()
+    endif()
+
+    install(FILES
+      ${GENERATED_DIR}/proto/${MESSAGE_NAME}.pb.h
+      DESTINATION share/${PROJECT_NAME}/nanopb_gen/platformio/protolink_msgs/proto)
+    install(FILES
+      ${GENERATED_DIR}/proto/${MESSAGE_NAME}.pb.c
+      DESTINATION share/${PROJECT_NAME}/nanopb_gen/platformio/protolink_msgs/proto)
+
+  endfunction()
+
   generate_nanopb_for_stm32cubeide(${PROTO_FILE} ${MESSAGE_NAME})
+  generate_nanopb_for_platformio(${PROTO_FILE} ${MESSAGE_NAME})
 
   install(TARGETS ${MESSAGE_NAME}
     EXPORT export_${MESSAGE_NAME}
@@ -151,5 +188,5 @@ function(add_protolink_message_from_ros_message MESSAGE_PACKAGE MESSAGE_TYPE)
     RUNTIME DESTINATION bin
     INCLUDES DESTINATION include)
 
-  # add_protolink_message(${PROTO_FILE} ${MESSAGE_PACKAGE}__${MESSAGE_TYPE})
+  add_protolink_message(${PROTO_FILE} ${MESSAGE_PACKAGE}__${MESSAGE_TYPE})
 endfunction()
