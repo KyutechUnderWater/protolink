@@ -169,6 +169,12 @@ function(add_protolink_message_from_ros_message MESSAGE_PACKAGE MESSAGE_TYPE)
 
   message("Generated protobuf message => ${PROTO_FILE}")
 
+  add_custom_target(
+    add_protolink_message_target_${MESSAGE_PACKAGE}__${MESSAGE_TYPE}
+    DEPENDS ${PROTO_FILE} ${CONVERSION_HEADER_FILE} ${CONVERSION_SOURCE_FILE}
+    COMMAND add_protolink_message(${PROTO_FILE} ${MESSAGE_PACKAGE}__${MESSAGE_TYPE})
+  )
+
   include(FindProtobuf REQUIRED)
 
   protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILE})
@@ -187,6 +193,4 @@ function(add_protolink_message_from_ros_message MESSAGE_PACKAGE MESSAGE_TYPE)
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
     INCLUDES DESTINATION include)
-
-  add_protolink_message(${PROTO_FILE} ${MESSAGE_PACKAGE}__${MESSAGE_TYPE})
 endfunction()
