@@ -2,13 +2,13 @@
 
 ## Introduction
 
-Automatic Protocol Buffers generation tool to link ROS2 and microcontroller. The protocol buffer developed by google is used to provide ros2-independent communication.
+Automatic [Protocol Buffers](https://github.com/protocolbuffers/protobuf) generation tool to link ROS2 and microcontroller. The protocol buffer developed by google is used to provide ros2-independent communication.
 
 ## Features
 
 - Generate .proto file from ROS2 message
 - Generate C++ protocol buffer API from .proto file
-- Generate ANSI-C protocol buffer API from .proto file using Nanopb
+- Generate ANSI-C protocol buffer API from .proto file using [Nanopb](https://github.com/nanopb/nanopb)
 - Generate function to interconversion between ROS2 message and Protocol Buffers
 
 ## Requirements
