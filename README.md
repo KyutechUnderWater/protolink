@@ -4,7 +4,7 @@
 
 Automatic Protocol Buffers generation tool to link ROS2 and microcontroller. The protocol buffer developed by google is used to provide ros2-independent communication.
 
-## Feature
+## Features
 
 - Generate .proto file from ROS2 message
 - Generate C++ protocol buffer API from .proto file
@@ -51,7 +51,7 @@ Add task to CMakeLists.txt
 add_protolink_message_from_ros_message("geographic_msgs" "GeoPose")
 ```
 
-Generate .proto file
+Generate .proto file and API
 
 ```bash
 $ cmake -S . -B build -G "Ninja"
