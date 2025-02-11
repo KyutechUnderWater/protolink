@@ -255,8 +255,8 @@ def get_message_structure(
 
     fields = get_message_fields(msg_type_name)
 
-    print(f"Message: {msg_type_name}")
-    print("Fields:")
+    # print(f"Message: {msg_type_name}")
+    # print("Fields:")
 
     proto_string = 'syntax = "proto3";\n'
     proto_string = (
@@ -295,7 +295,6 @@ def get_message_structure(
             field_type, field_name, message_index, False
         )
         message_index = message_index + 1
-    print(conversions)
     proto_string = proto_string + "}"
 
     # Generate proto file
