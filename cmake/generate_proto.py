@@ -15,6 +15,17 @@ def is_sequence_type(ros2_message_field_type: str) -> str | None:
     return None
 
 
+def is_array_type(ros2_message_field_type: str) -> bool:
+    pattern = r"\w*\[\d*\]$"
+    match = re.search(pattern, ros2_message_field_type)
+    return True if match else False
+
+
+def array_to_proto_type(ros2_message_field_type: str) -> str:
+    splited_field = re.split("[\[\]]", ros2_message_field_type)
+    return splited_field[0]
+
+
 def get_message_fields(msg_type_name: str) -> dict[str, str] | None:
     try:
         msg_module, msg_class = msg_type_name.split("/")
@@ -52,8 +63,8 @@ def to_proto_type(ros2_message_field_type: str) -> str | None:
         return "double"
     elif ros2_message_field_type == "boolean":
         return "bool"
-    elif is_sequence_type(ros2_message_field_type) != None:
-        return "repeated " + to_proto_type(is_sequence_type(ros2_message_field_type))
+    elif is_array_type(ros2_message_field_type) != None:
+        return "repeated " + array_to_proto_type(ros2_message_field_type)
     elif "/" in ros2_message_field_type:
         if get_message_fields(ros2_message_field_type) != None:
             return ros2_message_field_type
@@ -64,10 +75,15 @@ def to_proto_type(ros2_message_field_type: str) -> str | None:
 def append_conversions_for_template(
     namespace: str, field_type: str, conversions: list[dict]
 ) -> list[dict]:
-    if "/" in field_type:
+    if is_sequence_type(field_type):
+        return append_conversions_for_template(
+            namespace, is_sequence_type(field_type), conversions
+        )
+    elif "/" in field_type:
         if namespace != "":
             builtin_types = []
             user_types = []
+            array_types = []
             fields = get_message_fields(field_type)
             for field_name_in_child, field_type_in_child in fields.items():
                 if "/" in field_type_in_child:
@@ -96,15 +112,19 @@ def append_conversions_for_template(
                     "members": {
                         "builtin_types": builtin_types,
                         "user_types": user_types,
+                        "array_types": array_types,
                     },
                 }
             )
         else:
             builtin_types = []
             user_types = []
+            array_types = []
             fields = get_message_fields(field_type)
             for field_name_in_child, field_type_in_child in fields.items():
-                if "/" in field_type_in_child:
+                if is_sequence_type(field_type_in_child):
+                    array_types.append(field_name_in_child)
+                elif "/" in field_type_in_child:
                     user_types.append(field_name_in_child)
                 else:
                     builtin_types.append(field_name_in_child)
@@ -124,6 +144,7 @@ def append_conversions_for_template(
                     "members": {
                         "builtin_types": builtin_types,
                         "user_types": user_types,
+                        "array_types": array_types,
                     },
                 }
             )
@@ -133,9 +154,13 @@ def append_conversions_for_template(
 
 
 def to_proto_message_definition(
-    field_type: str, field_name: str, message_index: int
+    field_type: str, field_name: str, message_index: int, is_repeated: bool
 ) -> str:
-    if "/" in field_type:
+    if is_sequence_type(field_type):
+        return to_proto_message_definition(
+            is_sequence_type(field_type), field_name, message_index, True
+        )
+    elif "/" in field_type:
         fields = get_message_fields(field_type)
         base_proto_string = (
             "message "
@@ -149,33 +174,48 @@ def to_proto_message_definition(
 
         for field_name_in_child, field_type_in_child in fields.items():
             base_proto_string = base_proto_string + to_proto_message_definition(
-                field_type_in_child, field_name_in_child, message_index_in_child
+                field_type_in_child,
+                field_name_in_child,
+                message_index_in_child,
+                is_repeated,
             )
 
             message_index_in_child = message_index_in_child + 1
         base_proto_string = base_proto_string + "}\n"
 
-        return (
-            base_proto_string
-            + "\n"
-            + field_type.split("/")[0]
-            + "__"
-            + field_type.split("/")[1]
-            + " "
-            + field_name
-            + " = "
-            + str(message_index)
-            + ";\n"
-        )
+        if is_repeated:
+            return (
+                base_proto_string
+                + "\n"
+                + "repeated "
+                + field_type.split("/")[0]
+                + "__"
+                + field_type.split("/")[1]
+                + " "
+                + field_name
+                + " = "
+                + str(message_index)
+                + ";\n"
+            )
+        else:
+            return (
+                base_proto_string
+                + "\n"
+                + field_type.split("/")[0]
+                + "__"
+                + field_type.split("/")[1]
+                + " "
+                + field_name
+                + " = "
+                + str(message_index)
+                + ";\n"
+            )
     else:
-        return (
-            to_proto_type(field_type)
-            + " "
-            + field_name
-            + " = "
-            + str(message_index)
-            + ";\n"
-        )
+        proto_string = to_proto_type(field_type)
+        assert (
+            proto_string is not None
+        ), "Can not convert from ros2 message to proto message"
+        return proto_string + " " + field_name + " = " + str(message_index) + ";\n"
 
 
 def get_message_structure(
@@ -215,8 +255,8 @@ def get_message_structure(
 
     fields = get_message_fields(msg_type_name)
 
-    print(f"Message: {msg_type_name}")
-    print("Fields:")
+    # print(f"Message: {msg_type_name}")
+    # print("Fields:")
 
     proto_string = 'syntax = "proto3";\n'
     proto_string = (
@@ -239,7 +279,6 @@ def get_message_structure(
     message_index = 1
 
     for field_name, field_type in fields.items():
-        print(f"  - {field_name}: {field_type} -> {to_proto_type(field_type)}")
         conversions = append_conversions_for_template(
             "protolink__"
             + msg_type_name.split("/")[0]
@@ -253,14 +292,14 @@ def get_message_structure(
             conversions,
         )
         proto_string = proto_string + to_proto_message_definition(
-            field_type, field_name, message_index
+            field_type, field_name, message_index, False
         )
         message_index = message_index + 1
     proto_string = proto_string + "}"
 
     # Generate proto file
-    print("\nProto file => \n")
-    print(proto_string)
+    # print("\nProto file => \n")
+    # print(proto_string)
     with open(output_file, mode="w") as f:
         f.write(proto_string)
 

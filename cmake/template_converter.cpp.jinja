@@ -12,6 +12,12 @@
     ros2_message.{{user_type}} = convert(message.{{user_type}}());
     {% endfor %}
 
+    {% for array_type in conversion.members.array_types %}
+    for (const auto & data : message.{{array_type}}()) {
+        ros2_message.{{array_type}}.push_back(convert(data));
+    }
+    {% endfor %}
+
     return ros2_message;
 }
 
@@ -25,6 +31,13 @@
     {% for user_type in conversion.members.user_types %}
     *proto_message.mutable_{{user_type}}() = convert(message.{{user_type}});
     {% endfor %}
+
+    {% for array_type in conversion.members.array_types %}
+    for (const auto & data : message.{{array_type}}) {
+        *proto_message.add_{{array_type}}() = convert(data);
+    }
+    {% endfor %}
+
     return proto_message;
 }
 {% endfor %}
