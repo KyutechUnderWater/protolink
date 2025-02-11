@@ -35,6 +35,9 @@ $ cd protolink
 
 ## How to Using
 
+> [!NOTE]
+> It is recommended to create an external repository like [protolink_drivers](https://github.com/OUXT-Polaris/protolink_drivers) and add the protolink and geographic_msgs dependencies there.
+
 When using geographic_msgs/GeoPose
 
 Add denendent packages to package.xml
@@ -58,7 +61,7 @@ $ cmake -S . -B build -G "Ninja"
 $ cmake --build build
 ```
 
-Generated API file path
+Path of the generated API file
 
 - C++ API: build/...
 - ANSI-C API: build/nanopb-gen/...
