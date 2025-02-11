@@ -28,18 +28,18 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 
   include(cmake/add_protolink_message.cmake)
-  # add_protolink_message_from_ros_message("std_msgs" "String")
-  # add_protolink_message_from_ros_message("std_msgs" "Header")
+  add_protolink_message_from_ros_message("std_msgs" "String")
+  add_protolink_message_from_ros_message("std_msgs" "Header")
   add_protolink_message_from_ros_message("std_msgs" "MultiArrayLayout")
-  # add_protolink_message_from_ros_message("geometry_msgs" "PoseStamped")
+  add_protolink_message_from_ros_message("geometry_msgs" "PoseStamped")
 
   find_package(ament_cmake_gtest REQUIRED)
 
-  # ament_add_gtest(unittest test/test.cpp)
-  # target_link_libraries(unittest protolink 
-  #   ${PROTOBUF_LIBRARY}
-  #   PahoMqttCpp::paho-mqttpp3
-  #   std_msgs__String_proto)
+  ament_add_gtest(unittest test/test.cpp)
+  target_link_libraries(unittest protolink 
+    ${PROTOBUF_LIBRARY}
+    PahoMqttCpp::paho-mqttpp3
+    std_msgs__String_proto)
 endif()
 
 ament_auto_package(CONFIG_EXTRAS "${PROJECT_NAME}_ament_cmake-extras.cmake")
