@@ -30,11 +30,20 @@ public:
   explicit Publisher(
     boost::asio::io_service & io_service, const std::string & ip_address, const uint16_t port,
     const uint16_t from_port, const rclcpp::Logger & logger = rclcpp::get_logger("protolink_udp"))
-  : endpoint(boost::asio::ip::udp::endpoint(
-      boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(ip_address), port))),
+  : endpoint([ip_address, port]() {
+      if (ip_address == "255.255.255.255") {
+        return boost::asio::ip::udp::endpoint(boost::asio::ip::address_v4::broadcast(), port);
+      }
+      return boost::asio::ip::udp::endpoint(
+        boost::asio::ip::address::from_string(ip_address), port);
+    }()),
     logger(logger),
     sock_(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), from_port))
   {
+    if (ip_address == "255.255.255.255") {
+      sock_.set_option(boost::asio::ip::udp::socket::reuse_address(true));
+      sock_.set_option(boost::asio::socket_base::broadcast(true));
+    }
   }
   const boost::asio::ip::udp::endpoint endpoint;
   const rclcpp::Logger logger;
