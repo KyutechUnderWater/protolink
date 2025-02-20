@@ -40,7 +40,7 @@ public:
     logger(logger),
     sock_(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), from_port))
   {
-    if (ip_address == "255.255.255.255") {
+    if (ip_address == "255.255.255.255" || ip_address.substr(ip_address.length() - 3, 3) == "255") {
       sock_.set_option(boost::asio::ip::udp::socket::reuse_address(true));
       sock_.set_option(boost::asio::socket_base::broadcast(true));
     }
