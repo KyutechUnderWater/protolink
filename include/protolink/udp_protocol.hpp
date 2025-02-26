@@ -75,6 +75,12 @@ public:
     sock_(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port)),
     callback_(callback)
   {
+    start_receive();
+    io_service.run();
+  }
+
+  void start_receive()
+  {
     sock_.async_receive(
       boost::asio::buffer(receive_data_),
       boost::bind(
@@ -98,6 +104,9 @@ private:
     Proto proto;
     proto.ParseFromString(data);
     callback_(proto);
+
+    // 再度受信を開始
+    start_receive();
   }
 };
 }  // namespace udp_protocol
