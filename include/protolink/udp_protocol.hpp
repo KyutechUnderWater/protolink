@@ -76,7 +76,7 @@ public:
     callback_(callback)
   {
     start_receive();
-    io_thread_ = std::thread(boost::bind(&boost::asio::io_service::run, &io_context));
+    io_thread_ = std::thread(boost::bind(&boost::asio::io_context::run, &io_context));
   }
 
   void start_receive()
