@@ -16,7 +16,7 @@
 #define PROTOLINK__UDP_PROTOCOL_HPP_
 
 #include <boost/asio.hpp>
-#include <boost/thread/thread.hpp>
+#include <boost/thread.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 namespace protolink
@@ -76,7 +76,7 @@ public:
     callback_(callback)
   {
     start_receive();
-    io_context.run();
+    io_thread_ = std::thread(boost::bind(&boost::asio::io_service::run, &io_context));
   }
 
   void start_receive()
@@ -92,6 +92,7 @@ public:
 private:
   boost::asio::ip::udp::socket sock_;
   std::function<void(Proto)> callback_;
+  std::thread io_thread_;
   boost::array<char, ReceiveBufferSize> receive_data_;
 
   void handler(const boost::system::error_code & error, size_t bytes_transferred)
