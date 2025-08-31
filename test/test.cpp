@@ -25,10 +25,11 @@ int main(int argc, char ** argv)
 
 TEST(UDP, send_proto)
 {
-  // std::shared_ptr<boost::asio::io_service> io = std::make_shared<boost::asio::io_service>();
-  boost::asio::io_service ios;
+  // std::shared_ptr<boost::asio::io_context> io =
+  // std::make_shared<boost::asio::io_context>();
+  boost::asio::io_context ioc;
   auto client = protolink::udp_protocol::Publisher<protolink__std_msgs__String::std_msgs__String>(
-    ios, "127.0.0.1", 8000, 8000);
+    ioc, "127.0.0.1", 8000, 8000);
   // protolink__std_msgs__String::std_msgs__String string_msg;
   // string_msg.set_data("Hello World");
   // client.send(string_msg);
@@ -36,31 +37,35 @@ TEST(UDP, send_proto)
 
 // TEST(UDP, recieve_proto)
 // {
-//   boost::asio::io_service ios;
-//   auto client = protolink::udp_protocol::Subscriber<protolink__std_msgs__String::std_msgs__String>(
-//     ios, 8000, [](const auto &) {});
+//   boost::asio::io_context ioc;
+//   auto client =
+//   protolink::udp_protocol::Subscriber<protolink__std_msgs__String::std_msgs__String>(
+//     ioc, 8000, [](const auto &) {});
 // }
 
-// TEST(MQTT, connect) { protolink::mqtt_protocol::Publisher("127.0.0.1", "protolink", "hello", 1); }
+// TEST(MQTT, connect) { protolink::mqtt_protocol::Publisher("127.0.0.1",
+// "protolink", "hello", 1); }
 
 TEST(Serial, buildtest_publisher)
 {
-  /// This test case may access a device file that does not exist, so only verify that it can be built
+  /// This test case may access a device file that does not exist, so only
+  /// verify that it can be built
   try {
-    boost::asio::io_service ios;
+    boost::asio::io_context ioc;
     protolink::serial_protocol::Publisher<protolink__std_msgs__String::std_msgs__String> publisher(
-      ios, "/dev/ttyACM0", 9600);
+      ioc, "/dev/ttyACM0", 9600);
   } catch (...) {
   }
 }
 
 TEST(Serial, buildtest_subscriber)
 {
-  /// This test case may access a device file that does not exist, so only verify that it can be built
+  /// This test case may access a device file that does not exist, so only
+  /// verify that it can be built
   try {
-    boost::asio::io_service ios;
+    boost::asio::io_context ioc;
     protolink::serial_protocol::Subscriber<protolink__std_msgs__String::std_msgs__String, 256>
-      subscriber(ios, "/dev/ttyACM0", 9600, [](const auto &) {});
+      subscriber(ioc, "/dev/ttyACM0", 9600, [](const auto &) {});
   } catch (...) {
   }
 }
