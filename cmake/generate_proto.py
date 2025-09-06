@@ -44,13 +44,13 @@ def to_proto_type(ros2_message_field_type: str) -> str | None:
         or ros2_message_field_type == "uint16"
         or ros2_message_field_type == "uint32"
     ):
-        return "uint32"
+        return "optional uint32"
     elif (
         ros2_message_field_type == "int8"
         or ros2_message_field_type == "int16"
         or ros2_message_field_type == "int32"
     ):
-        return "int32"
+        return "optional int32"
     elif (
         ros2_message_field_type == "int64"
         or ros2_message_field_type == "uint64"
@@ -58,11 +58,11 @@ def to_proto_type(ros2_message_field_type: str) -> str | None:
     ):
         return ros2_message_field_type
     elif ros2_message_field_type == "float32" or ros2_message_field_type == "float":
-        return "float"
+        return "optional float"
     elif ros2_message_field_type == "float64" or ros2_message_field_type == "double":
-        return "double"
+        return "optional double"
     elif ros2_message_field_type == "boolean":
-        return "bool"
+        return "optional bool"
     elif is_array_type(ros2_message_field_type) != None:
         return "repeated " + array_to_proto_type(ros2_message_field_type)
     elif "/" in ros2_message_field_type:
@@ -212,9 +212,9 @@ def to_proto_message_definition(
             )
     else:
         proto_string = to_proto_type(field_type)
-        assert (
-            proto_string is not None
-        ), "Can not convert from ros2 message to proto message"
+        assert proto_string is not None, (
+            "Can not convert from ros2 message to proto message"
+        )
         return proto_string + " " + field_name + " = " + str(message_index) + ";\n"
 
 
