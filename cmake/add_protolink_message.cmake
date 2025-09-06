@@ -56,24 +56,24 @@ function(add_protolink_message PROTO_FILE MESSAGE_NAME)
 
     add_custom_command(
       OUTPUT ${GENERATED_DIR}/${MESSAGE_NAME}.pb.c ${GENERATED_DIR}/${MESSAGE_NAME}.pb.h
-      COMMAND cp ${PROTO_FILE} ${GENERATED_DIR}/proto/${PROTO_FILENAME} && ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_BINARY_DIR}/nanopb/src/nanopb/generator python3 
+      COMMAND cp ${PROTO_FILE} ${GENERATED_DIR}/proto/${PROTO_FILENAME} && ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_BINARY_DIR}/nanopb/src/nanopb/generator python3
         ${NANOPB_GENERATOR_PY} --output-dir=${GENERATED_DIR} proto/${PROTO_FILENAME}
       DEPENDS nanopb ${PROTO_FILE}
       WORKING_DIRECTORY ${GENERATED_DIR}
     )
 
-    message(NOTICE "Files for nanopb have been generated. 
+    message(NOTICE "Files for nanopb have been generated.
       Message name : ${MESSAGE_NAME}
       Please copy the files from the directory below to the development environment of the microcontroller. (STM32 CubeIDE)
       ${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/nanopb_gen/STM32CubeIDE")
-    
+
     add_custom_target(${MESSAGE_NAME}_nanopb_stm32cubeide ALL DEPENDS ${GENERATED_DIR}/${MESSAGE_NAME}.pb.c ${GENERATED_DIR}/${MESSAGE_NAME}.pb.h)
     if(TARGET ${MESSAGE_NAME}__from_ros)
       add_dependencies(${MESSAGE_NAME}_nanopb_stm32cubeide ${MESSAGE_NAME}__from_ros)
     else()
     endif()
 
-    install(FILES 
+    install(FILES
       ${CMAKE_BINARY_DIR}/nanopb/src/nanopb/pb.h
       ${CMAKE_BINARY_DIR}/nanopb/src/nanopb/pb_common.h
       ${CMAKE_BINARY_DIR}/nanopb/src/nanopb/pb_decode.h
@@ -82,7 +82,7 @@ function(add_protolink_message PROTO_FILE MESSAGE_NAME)
     install(FILES
       ${GENERATED_DIR}/proto/${MESSAGE_NAME}.pb.h
       DESTINATION share/${PROJECT_NAME}/nanopb_gen/STM32CubeIDE/Inc/proto)
-    install(FILES 
+    install(FILES
       ${CMAKE_BINARY_DIR}/nanopb/src/nanopb/pb_common.c
       ${CMAKE_BINARY_DIR}/nanopb/src/nanopb/pb_decode.c
       ${CMAKE_BINARY_DIR}/nanopb/src/nanopb/pb_encode.c
@@ -100,17 +100,17 @@ function(add_protolink_message PROTO_FILE MESSAGE_NAME)
 
     add_custom_command(
       OUTPUT ${GENERATED_DIR}/${MESSAGE_NAME}.pb.c ${GENERATED_DIR}/${MESSAGE_NAME}.pb.h
-      COMMAND cp ${PROTO_FILE} ${GENERATED_DIR}/proto/${PROTO_FILENAME} && ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_BINARY_DIR}/nanopb/src/nanopb/generator python3 
+      COMMAND cp ${PROTO_FILE} ${GENERATED_DIR}/proto/${PROTO_FILENAME} && ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_BINARY_DIR}/nanopb/src/nanopb/generator python3
         ${NANOPB_GENERATOR_PY} --output-dir=${GENERATED_DIR} proto/${PROTO_FILENAME}
       DEPENDS nanopb ${PROTO_FILE}
       WORKING_DIRECTORY ${GENERATED_DIR}
     )
 
-    message(NOTICE "Files for nanopb have been generated. 
+    message(NOTICE "Files for nanopb have been generated.
       Message name : ${MESSAGE_NAME}
       Please copy the files from the directory below lib in to the development environment of the microcontroller. (PlatformIO)
       ${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/nanopb_gen/platformio")
-    
+
     add_custom_target(${MESSAGE_NAME}_nanopb_platformio ALL DEPENDS ${GENERATED_DIR}/${MESSAGE_NAME}.pb.c ${GENERATED_DIR}/${MESSAGE_NAME}.pb.h)
     if(TARGET ${MESSAGE_NAME}__from_ros)
       add_dependencies(${MESSAGE_NAME}_nanopb_platformio ${MESSAGE_NAME}__from_ros)
