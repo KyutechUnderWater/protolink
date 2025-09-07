@@ -14,7 +14,7 @@
 
 #include <gtest/gtest.h>
 
-#include <conversion_std_msgs__String.hpp>
+#include <proto_files/conversion_std_msgs__String.hpp>
 #include <protolink/client.hpp>
 
 int main(int argc, char ** argv)
