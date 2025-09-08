@@ -14,19 +14,6 @@
 
 function(add_protolink_message PROTO_FILE MESSAGE_NAME)
   find_package(Boost REQUIRED thread)
-  include(FindProtobuf REQUIRED)
-  protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILE})
-  add_library(${MESSAGE_NAME} SHARED
-    ${PROTO_SRCS}
-    ${PROTO_HDRS}
-  )
-  target_link_libraries(${MESSAGE_NAME} ${PROTOBUF_LIBRARY})
-
-  include_directories(
-    include
-    ${CMAKE_BINARY_DIR}
-  )
-
   include(ExternalProject)
 
   if(TARGET nanopb)
@@ -129,20 +116,13 @@ function(add_protolink_message PROTO_FILE MESSAGE_NAME)
   generate_nanopb_for_stm32cubeide(${PROTO_FILE} ${MESSAGE_NAME})
   generate_nanopb_for_platformio(${PROTO_FILE} ${MESSAGE_NAME})
 
-  install(TARGETS ${MESSAGE_NAME}
-    EXPORT export_${MESSAGE_NAME}
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include)
-
 endfunction()
 
 function(add_protolink_message_from_ros_message MESSAGE_PACKAGE MESSAGE_TYPE)
   set(GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto_files)
   file(MAKE_DIRECTORY ${GENERATED_DIR})
-  set(CONVERSION_HEADER_FILE conversion_${MESSAGE_PACKAGE}__${MESSAGE_TYPE}.hpp)
-  set(CONVERSION_SOURCE_FILE conversion_${MESSAGE_PACKAGE}__${MESSAGE_TYPE}.cpp)
+  set(CONVERSION_HEADER_FILE proto_files/conversion_${MESSAGE_PACKAGE}__${MESSAGE_TYPE}.hpp)
+  set(CONVERSION_SOURCE_FILE proto_files/conversion_${MESSAGE_PACKAGE}__${MESSAGE_TYPE}.cpp)
 
   set(PROTO_FILE ${GENERATED_DIR}/${MESSAGE_PACKAGE}__${MESSAGE_TYPE}.proto)
 
@@ -164,20 +144,18 @@ function(add_protolink_message_from_ros_message MESSAGE_PACKAGE MESSAGE_TYPE)
     DEPENDS ${GENERATE_PROTO_SCRIPT} ${JINJA_TEMPLATE_HPP} ${JINJA_TEMPLATE_CPP}
   )
 
-  message("Generated protobuf message => ${PROTO_FILE}")
-  message(${CMAKE_CURRENT_BINARY_DIR}/nanopb_gen/STM32CubeIDE)
+  message(NOTICE "Generated protobuf message => ${PROTO_FILE}")
 
-  include(FindProtobuf REQUIRED)
-
-  protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILE})
+  find_package(Protobuf REQUIRED CONFIG)
   include_directories(
     include
     ${CMAKE_BINARY_DIR}
   )
   find_package(rclcpp REQUIRED)
-  add_library(${MESSAGE_PACKAGE}__${MESSAGE_TYPE}_proto SHARED ${PROTO_SRCS} ${CONVERSION_SOURCE_FILE})
+  add_library(${MESSAGE_PACKAGE}__${MESSAGE_TYPE}_proto SHARED ${CONVERSION_SOURCE_FILE})
+  protobuf_generate(TARGET ${MESSAGE_PACKAGE}__${MESSAGE_TYPE}_proto PROTOS ${PROTO_FILE} IMPORT_DIRS ${CMAKE_CURRENT_BINARY_DIR})
   ament_target_dependencies(${MESSAGE_PACKAGE}__${MESSAGE_TYPE}_proto ${MESSAGE_PACKAGE} rclcpp)
-  target_link_libraries(${MESSAGE_PACKAGE}__${MESSAGE_TYPE}_proto ${PROTOBUF_LIBRARY})
+  target_link_libraries(${MESSAGE_PACKAGE}__${MESSAGE_TYPE}_proto protobuf::libprotobuf)
 
   add_protolink_message(${PROTO_FILE} ${MESSAGE_PACKAGE}__${MESSAGE_TYPE})
 

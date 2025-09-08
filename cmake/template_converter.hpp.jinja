@@ -4,7 +4,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <{{ ros2_header }}>
-#include <{{ proto_header }}>
+#include "{{ proto_header }}"
 
 {% for conversion in conversions %}
 {{ conversion.ros2 }} convert(const {{ conversion.proto }} & message);
