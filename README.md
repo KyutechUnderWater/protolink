@@ -15,7 +15,7 @@ Automatic [Protocol Buffers](https://github.com/protocolbuffers/protobuf) genera
 
 - ROS2 (humble or latest)
 - Python3
-- Protocol Buffer (v31.1 or latest) → [Build and Install example](https://github.com/OUXT-Polaris/protolink/docs/install_protobuf.md)
+- Protocol Buffer (v31.1 or latest) → [Build and Install example](https://github.com/OUXT-Polaris/protolink/blob/master/docs/install_protobuf.md)
 
 ## Installation
 
