@@ -23,7 +23,7 @@ Install dependencies
 
 ```bash
 sudo apt update
-sudo apt install -y libboost-all-dev libpaho-mqtt-dev libpaho-mqttpp-dev cmake ninja-build python3 python3-venv python3-pip
+sudo apt install -y libboost-all-dev libpaho-mqtt-dev libpaho-mqttpp-dev cmake ninja-build python3 python3-venv python3-pip python3-jinja2
 ```
 
 Install python packages
