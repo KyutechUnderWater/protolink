@@ -29,9 +29,9 @@ class Publisher
 {
 public:
   explicit Publisher(
-    boost::asio::io_service & io_service, const std::string & device_file, const uint16_t baud_rate,
+    boost::asio::io_context & io_context, const std::string & device_file, const uint16_t baud_rate,
     const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"))
-  : logger(logger), serial_(io_service, device_file)
+  : logger(logger), serial_(io_context, device_file)
   {
     serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
   }
@@ -58,10 +58,10 @@ class Subscriber
 {
 public:
   explicit Subscriber(
-    boost::asio::io_service & io_service, const std::string & device_file, const uint16_t baud_rate,
+    boost::asio::io_context & io_context, const std::string & device_file, const uint16_t baud_rate,
     std::function<void(const Proto &)> callback,
     const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"))
-  : logger(logger), serial_(io_service, device_file), callback_(callback)
+  : logger(logger), serial_(io_context, device_file), callback_(callback)
   {
     serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
     serial_.async_read_some(
