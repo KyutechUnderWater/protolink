@@ -15,15 +15,29 @@ Automatic [Protocol Buffers](https://github.com/protocolbuffers/protobuf) genera
 
 - ROS2 (humble or latest)
 - Python3
+- Protocol Buffer (v31.1 or latest) → [Build and Install example](https://github.com/OUXT-Polaris/protolink/blob/master/docs/install_protobuf.md)
 
 ## Installation
 
 Install dependencies
 
 ```bash
-$ sudo apt update
-$ sudo apt install protobuf-compiler libpaho-mqtt-dev libpaho-mqttpp-dev cmake ninja-build
+sudo apt update
+sudo apt install -y libboost-all-dev libpaho-mqtt-dev libpaho-mqttpp-dev cmake ninja-build python3 python3-venv python3-pip python3-jinja2
+```
 
+Install python packages
+
+```bash
+python3 -m pip install protobuf grpcio-tools
+```
+
+(Python3.12 or latest) Create python virtual env and Install python packages
+
+```bash
+python3 -m venv .venv --system-site-packages
+source .venv/bin/activate
+python3 -m pip install protobuf grpcio-tools
 ```
 
 Clone repository

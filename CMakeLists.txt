@@ -8,7 +8,7 @@ endif()
 # find dependencies
 find_package(ament_cmake_auto REQUIRED)
 find_package(PahoMqttCpp REQUIRED)
-include(FindProtobuf REQUIRED)
+find_package(Protobuf REQUIRED CONFIG)
 ament_auto_find_build_dependencies()
 
 ament_auto_add_library(protolink SHARED
@@ -36,8 +36,8 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
   ament_add_gtest(unittest test/test.cpp)
-  target_link_libraries(unittest protolink 
-    ${PROTOBUF_LIBRARY}
+  target_link_libraries(unittest protolink
+    protobuf::libprotobuf
     PahoMqttCpp::paho-mqttpp3
     std_msgs__String_proto)
 endif()

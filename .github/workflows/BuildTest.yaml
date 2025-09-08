@@ -15,22 +15,21 @@ jobs:
       fail-fast: false
       max-parallel: 8
       matrix:
-        rosdistro: [humble]
         include:
-          # Galactic Geochelone (May 2021 - November 2022)
-          # - docker_image: rostooling/setup-ros-docker:ubuntu-focal-ros-galactic-ros-base-latest
-          #   rosdistro: galactic
           # Humble Hawksbill (May 2022 - May 2027)
-          - docker_image: rostooling/setup-ros-docker:ubuntu-jammy-ros-humble-ros-base-latest
-            rosdistro: humble
-          # Rolling Ridley
-          # - docker_image: rostooling/setup-ros-docker:ubuntu-jammy-ros-rolling-ros-base-latest
-          #   rosdistro: rolling
+          - rosdistro: humble
+            docker_image: rostooling/setup-ros-docker:ubuntu-jammy-ros-humble-ros-base-latest
+          # # Jazzy Jalisco (May 2024 - May 2029)
+          - rosdistro: jazzy
+            docker_image: rostooling/setup-ros-docker:ubuntu-noble-ros-jazzy-ros-base-latest
     env:
       ROS_DISTRO: ${{ matrix.rosdistro }}
     container:
       image: ${{ matrix.docker_image }}
     steps:
+      - name: Install node to Ubuntu (workaround for act)
+        if: ${{ env.ACT }}
+        run: curl -fsSL https://deb.nodesource.com/setup_22.x | bash && apt install -y nodejs
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -50,6 +49,22 @@ jobs:
         with:
           path: /tmp/ccache
           key: ccache-${{ matrix.rosdistro }}
+      - name: Install Protocol Buffer
+        run: |
+          git clone https://github.com/abseil/abseil-cpp.git /abseil-cpp && cd /abseil-cpp
+          cmake -S . -B build  -DCMAKE_INSTALL_PREFIX=/usr/local -DABSL_ENABLE_INSTALL=ON  -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+          cmake --build build --target install --parallel 20
+          git clone -b v31.1 https://github.com/protocolbuffers/protobuf.git /protobuf && cd /protobuf
+          git submodule update --init --recursive
+          cmake -S . -B build   -DCMAKE_INSTALL_PREFIX=/usr/local   -DCMAKE_BUILD_TYPE=Release -Dprotobuf_BUILD_TESTS=OFF -Dprotobuf_BUILD_SHARED_LIBS=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+          cmake --build build --parallel 20 && cmake --install build
+          sudo apt update && sudo apt install -y python3-venv python3-pip
+          python3 -m venv /.venv --system-site-packages
+          echo "PATH=/.venv/bin:${PATH}" >> $GITHUB_ENV
+          /.venv/bin/python3 -m pip install protobuf grpcio-tools
+      - name: Check protoc
+        run: |
+          protoc --version
       - name: Search packages in this repository
         id: list_packages
         run: |
@@ -77,7 +92,8 @@ jobs:
           target-ros2-distro: ${{ matrix.rosdistro }}
           vcs-repo-file-url: dependency-${{ matrix.rosdistro }}.repos
           extra-cmake-args: -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-        env: 
+          rosdep-skip-keys: protobuf-dev protobuf python3-protobuf
+        env:
           CCACHE_DIR: /tmp/ccache
           DEVELOP: true
       - name: Run build test with dependency.repos
@@ -88,7 +104,8 @@ jobs:
           target-ros2-distro: ${{ matrix.rosdistro }}
           vcs-repo-file-url: dependency.repos
           extra-cmake-args: -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-        env: 
+          rosdep-skip-keys: protobuf-dev protobuf python3-protobuf
+        env:
           CCACHE_DIR: /tmp/ccache
           DEVELOP: true
       - name: Run build test without .repos file
@@ -98,7 +115,8 @@ jobs:
           package-name: ${{ steps.list_packages.outputs.package_list }}
           target-ros2-distro: ${{ matrix.rosdistro }}
           extra-cmake-args: -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-        env: 
+          rosdep-skip-keys: protobuf-dev protobuf python3-protobuf
+        env:
           CCACHE_DIR: /tmp/ccache
           DEVELOP: true
       - name: Notify Slack
@@ -116,7 +134,7 @@ jobs:
     needs: build
     steps:
       - name: merge PR
-        if : ${{ (github.event_name == 'pull_request') && (github.actor == 'wam-v-tan') }}
+        if: ${{ (github.event_name == 'pull_request') && (github.actor == 'wam-v-tan') }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge ${{ github.event.pull_request.html_url }} --merge

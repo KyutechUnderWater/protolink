@@ -17,7 +17,7 @@
 
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 namespace protolink
