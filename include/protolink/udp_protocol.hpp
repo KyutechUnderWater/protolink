@@ -16,7 +16,7 @@
 #define PROTOLINK__UDP_PROTOCOL_HPP_
 
 #include <boost/asio.hpp>
-#include <boost/thread/thread.hpp>
+#include <boost/thread.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 namespace protolink
@@ -28,7 +28,7 @@ class Publisher
 {
 public:
   explicit Publisher(
-    boost::asio::io_service & io_service, const std::string & ip_address, const uint16_t port,
+    boost::asio::io_context & io_context, const std::string & ip_address, const uint16_t port,
     const uint16_t from_port, const rclcpp::Logger & logger = rclcpp::get_logger("protolink_udp"))
   : endpoint([ip_address, port]() {
       if (ip_address == "255.255.255.255") {
@@ -38,7 +38,7 @@ public:
         boost::asio::ip::address::from_string(ip_address), port);
     }()),
     logger(logger),
-    sock_(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), from_port))
+    sock_(io_context, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), from_port))
   {
     if (ip_address == "255.255.255.255" || ip_address.substr(ip_address.length() - 3, 3) == "255") {
       sock_.set_option(boost::asio::ip::udp::socket::reuse_address(true));
@@ -68,15 +68,15 @@ class Subscriber
 {
 public:
   explicit Subscriber(
-    boost::asio::io_service & io_service, const uint16_t port,
+    boost::asio::io_context & io_context, const uint16_t port,
     std::function<void(const Proto &)> callback,
     const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"))
   : logger(logger),
-    sock_(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port)),
+    sock_(io_context, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port)),
     callback_(callback)
   {
     start_receive();
-    io_service.run();
+    io_thread_ = std::thread(boost::bind(&boost::asio::io_context::run, &io_context));
   }
 
   void start_receive()
@@ -92,7 +92,9 @@ public:
 private:
   boost::asio::ip::udp::socket sock_;
   std::function<void(Proto)> callback_;
+  std::thread io_thread_;
   boost::array<char, ReceiveBufferSize> receive_data_;
+
   void handler(const boost::system::error_code & error, size_t bytes_transferred)
   {
     if (error != boost::system::errc::success) {
