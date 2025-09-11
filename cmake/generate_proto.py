@@ -56,7 +56,7 @@ def to_proto_type(ros2_message_field_type: str) -> str | None:
         or ros2_message_field_type == "uint64"
         or ros2_message_field_type == "string"
     ):
-        return ros2_message_field_type
+        return "optional " + ros2_message_field_type
     elif ros2_message_field_type == "float32" or ros2_message_field_type == "float":
         return "optional float"
     elif ros2_message_field_type == "float64" or ros2_message_field_type == "double":
