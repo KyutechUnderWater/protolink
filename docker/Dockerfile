@@ -44,7 +44,7 @@ RUN mkdir -p /home/ros2_ws/src && \
     echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
 
 
-RUN git clone https://github.com/OUXT-Polaris/protolink.git /home/ros2_ws/src/protolink && \
+RUN git clone -b 24-feat-dockerfile https://github.com/OUXT-Polaris/protolink.git /home/ros2_ws/src/protolink && \
     source /ros_entrypoint.sh && \
     source /.venv/bin/activate && \
     colcon build
