@@ -28,7 +28,6 @@ function(add_protolink_message PROTO_FILE MESSAGE_NAME)
       INSTALL_COMMAND ""    # no install required
       UPDATE_DISCONNECTED 1
     )
-    execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 5)
   endif()
 
   # Path to nanopb_generator.py
