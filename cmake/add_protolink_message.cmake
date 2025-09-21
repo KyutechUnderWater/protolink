@@ -20,8 +20,8 @@ function(add_protolink_message PROTO_FILE MESSAGE_NAME)
   else()
     ExternalProject_Add(
       nanopb
-      GIT_REPOSITORY https://github.com/nanopb/nanopb.git
-      GIT_TAG master
+      GIT_REPOSITORY https://github.com/atomon/nanopb.git
+      GIT_TAG test
       PREFIX ${CMAKE_BINARY_DIR}/nanopb
       CONFIGURE_COMMAND ""  # no configuration required
       BUILD_COMMAND ""      # no build required
