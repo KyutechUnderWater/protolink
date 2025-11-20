@@ -78,7 +78,7 @@ private:
 /**
  * @brief Subscriber with serial
  */
-template <typename Proto, int ReadChunkSize = 64>
+template <typename Proto, int ReadChunkSize = 256>
 class Subscriber
 {
 public:
