@@ -186,4 +186,3 @@ private:
 }  // namespace protolink
 
 #endif  // PROTOLINK__SERIAL_PROTOCOL_HPP_
-
