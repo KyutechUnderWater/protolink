@@ -24,13 +24,16 @@ namespace protolink
 {
 namespace serial_protocol
 {
+/**
+ * @brief Publisher with serial
+ */
 template <typename Proto>
 class Publisher
 {
 public:
   explicit Publisher(
-    boost::asio::io_context & io_context, const std::string & device_file, const uint16_t baud_rate,
-    const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"))
+    boost::asio::io_context & io_context, const std::string & device_file, const uint32_t baud_rate,
+    const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial_pub"))
   : logger(logger), serial_(io_context, device_file)
   {
     serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
@@ -53,14 +56,17 @@ private:
   }
 };
 
-template <typename Proto, int ReceiveBufferSize = 128>
+/**
+ * @brief Subscriber with serial
+ */
+template <typename Proto, int ReadChunkSize = 64>
 class Subscriber
 {
 public:
   explicit Subscriber(
-    boost::asio::io_context & io_context, const std::string & device_file, const uint16_t baud_rate,
+    boost::asio::io_context & io_context, const std::string & device_file, const uint32_t baud_rate,
     std::function<void(const Proto &)> callback,
-    const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial"))
+    const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial_sub"))
   : logger(logger), serial_(io_context, device_file), callback_(callback)
   {
     serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
@@ -93,3 +99,4 @@ private:
 }  // namespace protolink
 
 #endif  // PROTOLINK__SERIAL_PROTOCOL_HPP_
+
