@@ -126,4 +126,3 @@ TEST(TypeAdapter, pub_sub)
   rclcpp::shutdown();
   EXPECT_TRUE(proto_recieved);
 }
-
