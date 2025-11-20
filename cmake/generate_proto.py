@@ -228,12 +228,16 @@ def get_message_structure(
     template_cpp = env.get_template("template_converter.cpp.jinja")
     conversions = append_conversions_for_template("", msg_type_name, [])
 
+    name = msg_type_name.split("/")[1]
     ros2_message_header = ""
-    for splited in re.split(r"(?=[A-Z])", msg_type_name.split("/")[1]):
-        if ros2_message_header == "":
-            ros2_message_header = splited.lower()
-        else:
-            ros2_message_header = ros2_message_header + "_" + splited.lower()
+    if name.isupper():
+        ros2_message_header = name.lower()
+    else:
+        for splited in re.split(r"(?=[A-Z])", name):
+            if ros2_message_header == "":
+                ros2_message_header = splited.lower()
+            else:
+                ros2_message_header = ros2_message_header + "_" + splited.lower()
 
     data = {
         "include_guard": "CONVERSION_"
