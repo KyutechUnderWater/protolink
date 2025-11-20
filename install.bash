@@ -19,7 +19,7 @@ uv add protobuf grpcio-tools jinja2
 ###############################
 git clone https://github.com/abseil/abseil-cpp.git ${root}/abseil-cpp && cd ${root}/abseil-cpp
 cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr/local -DABSL_ENABLE_INSTALL=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-sudo make --build build --target install --parallel 20
+sudo cmake --build build --target install --parallel 20
 
 #############################
 ## Build and Install protobuf
