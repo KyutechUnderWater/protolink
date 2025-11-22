@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <algorithm>
+#ifndef PROTOLINK__UTILS_HPP_
+#define PROTOLINK__UTILS_HPP_
+
+#include <boost/asio.hpp>
+
 #include <cstdint>
 #include <vector>
 
@@ -21,28 +25,29 @@ namespace protolink
 
 /**
  * @brief A wrapper class that manages the lifecycle of io_context and its worker thread.
- * @details Instantiating this class as a member variable automatically spawns a background thread for asynchronous operations.
+ * @details Instantiating this class as a member variable automatically spawns a background thread
+ * for asynchronous operations.
  */
 class IoContext
 {
-public:
-  IoContext() : work_guard_(boost::asio::make_work_guard(io_context_))
-  {
-    io_thread_ = std::thread([this]() { io_context_.run(); });
-  }
+  public:
+    IoContext() : work_guard_(boost::asio::make_work_guard(io_context_))
+    {
+        io_thread_ = std::thread([this]() { io_context_.run(); });
+    }
 
-  ~IoContext()
-  {
-    io_context_.stop();
-    if (io_thread_.joinable()) io_thread_.join();
-  }
+    ~IoContext()
+    {
+        io_context_.stop();
+        if (io_thread_.joinable()) io_thread_.join();
+    }
 
-  boost::asio::io_context & get() { return io_context_; }
+    boost::asio::io_context & get() { return io_context_; }
 
-private:
-  boost::asio::io_context io_context_;
-  boost::asio::executor_work_guard<boost::asio::io_context::executor_type> work_guard_;
-  std::thread io_thread_;
+  private:
+    boost::asio::io_context io_context_;
+    boost::asio::executor_work_guard<boost::asio::io_context::executor_type> work_guard_;
+    std::thread io_thread_;
 };
 
 namespace utils
@@ -54,58 +59,60 @@ namespace utils
  */
 class Cobs
 {
-public:
-  static std::vector<uint8_t> encode(const std::vector<uint8_t> & input)
-  {
-    std::vector<uint8_t> output;
-    output.reserve(input.size() + input.size() / 254 + 2);
+  public:
+    static std::vector<uint8_t> encode(const std::vector<uint8_t> & input)
+    {
+        std::vector<uint8_t> output;
+        output.reserve(input.size() + input.size() / 254 + 2);
 
-    size_t code_idx = output.size();
-    output.push_back(0);  // placeholder
-    uint8_t code = 1;
+        size_t code_idx = output.size();
+        output.push_back(0);  // placeholder
+        uint8_t code = 1;
 
-    for (uint8_t byte : input) {
-      if (byte != 0) {
-        output.push_back(byte);
-        code++;
-      }
-      if (byte == 0 || code == 0xFF) {
-        output[code_idx] = code;
-        code = 1;
-        code_idx = output.size();
-        if (byte == 0 || code == 0xFF) {
-          output.push_back(0);
+        for (uint8_t byte : input) {
+            if (byte != 0) {
+                output.push_back(byte);
+                code++;
+            }
+            if (byte == 0 || code == 0xFF) {
+                output[code_idx] = code;
+                code = 1;
+                code_idx = output.size();
+                if (byte == 0 || code == 0xFF) {
+                    output.push_back(0);
+                }
+            }
         }
-      }
+        output[code_idx] = code;
+        output.push_back(0x00);
+        return output;
     }
-    output[code_idx] = code;
-    output.push_back(0x00);
-    return output;
-  }
 
-  static std::vector<uint8_t> decode(const uint8_t * data, size_t length)
-  {
-    std::vector<uint8_t> output;
-    output.reserve(length);
-    size_t index = 0;
+    static std::vector<uint8_t> decode(const uint8_t * data, size_t length)
+    {
+        std::vector<uint8_t> output;
+        output.reserve(length);
+        size_t index = 0;
 
-    while (index < length) {
-      uint8_t code = data[index];
-      index++;
+        while (index < length) {
+            uint8_t code = data[index];
+            index++;
 
-      // If only terminal 0x00
-      if (code == 0) break;
+            // If only terminal 0x00
+            if (code == 0) break;
 
-      for (uint8_t i = 1; i < code; i++) {
-        if (index >= length) break;  // Error
-        output.push_back(data[index++]);
-      }
-      if (code < 0xFF && index < length) {
-        output.push_back(0);
-      }
+            for (uint8_t i = 1; i < code; i++) {
+                if (index >= length) break;  // Error
+                output.push_back(data[index++]);
+            }
+            if (code < 0xFF && index < length) {
+                output.push_back(0);
+            }
+        }
+        return output;
     }
-    return output;
-  }
 };
 }  // namespace utils
 }  // namespace protolink
+
+#endif  // !PROTOLINK__UTILS_HPP_
