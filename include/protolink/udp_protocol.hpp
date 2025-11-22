@@ -123,4 +123,3 @@ private:
 }  // namespace protolink
 
 #endif  // PROTOLINK__UDP_PROTOCOL_HPP_
-

@@ -57,8 +57,8 @@ TEST(Serial, buildtest_publisher)
     protolink::IoContext ioc;
     std::shared_ptr<protolink::serial_protocol::port> port =
       protolink::serial_protocol::create_port(ioc, "/dev/ttyACM0", 9600);
-    protolink::serial_protocol::Publisher<protolink__std_msgs__String::std_msgs__String>
-    publisher();
+    protolink::serial_protocol::Publisher<protolink__std_msgs__String::std_msgs__String> publisher(
+      port);
   } catch (...) {
   }
 }
@@ -72,7 +72,7 @@ TEST(Serial, buildtest_subscriber)
     std::shared_ptr<protolink::serial_protocol::port> port =
       protolink::serial_protocol::create_port(ioc, "/dev/ttyACM0", 9600);
     protolink::serial_protocol::Subscriber<protolink__std_msgs__String::std_msgs__String, 256>
-      subscriber([](const auto &) {});
+      subscriber(port, [](const auto &) {});
   } catch (...) {
   }
 }
@@ -133,4 +133,3 @@ TEST(TypeAdapter, pub_sub)
   rclcpp::shutdown();
   EXPECT_TRUE(proto_recieved);
 }
-
