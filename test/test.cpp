@@ -16,6 +16,7 @@
 
 #include <proto_files/conversion_std_msgs__String.hpp>
 #include <protolink/client.hpp>
+#include <protolink/serial_protocol.hpp>
 
 int main(int argc, char ** argv)
 {
@@ -28,8 +29,10 @@ TEST(UDP, send_proto)
   // std::shared_ptr<boost::asio::io_context> io =
   // std::make_shared<boost::asio::io_context>();
   protolink::IoContext ioc;
+  std::shared_ptr<protolink::udp_protocol::soket> sock =
+    protolink::udp_protocol::create_socket(ioc, 8000);
   auto client = protolink::udp_protocol::Publisher<protolink__std_msgs__String::std_msgs__String>(
-    ioc.get(), "127.0.0.1", 8000, 8000);
+    sock, "127.0.0.1", 8000);
   // protolink__std_msgs__String::std_msgs__String string_msg;
   // string_msg.set_data("Hello World");
   // client.send(string_msg);
@@ -52,8 +55,10 @@ TEST(Serial, buildtest_publisher)
   /// verify that it can be built
   try {
     protolink::IoContext ioc;
-    protolink::serial_protocol::Publisher<protolink__std_msgs__String::std_msgs__String> publisher(
-      ioc.get(), "/dev/ttyACM0", 9600);
+    std::shared_ptr<protolink::serial_protocol::port> port =
+      protolink::serial_protocol::create_port(ioc, "/dev/ttyACM0", 9600);
+    protolink::serial_protocol::Publisher<protolink__std_msgs__String::std_msgs__String>
+    publisher();
   } catch (...) {
   }
 }
@@ -64,8 +69,10 @@ TEST(Serial, buildtest_subscriber)
   /// verify that it can be built
   try {
     protolink::IoContext ioc;
+    std::shared_ptr<protolink::serial_protocol::port> port =
+      protolink::serial_protocol::create_port(ioc, "/dev/ttyACM0", 9600);
     protolink::serial_protocol::Subscriber<protolink__std_msgs__String::std_msgs__String, 256>
-      subscriber(ioc.get(), "/dev/ttyACM0", 9600, [](const auto &) {});
+      subscriber([](const auto &) {});
   } catch (...) {
   }
 }
@@ -126,3 +133,4 @@ TEST(TypeAdapter, pub_sub)
   rclcpp::shutdown();
   EXPECT_TRUE(proto_recieved);
 }
+
