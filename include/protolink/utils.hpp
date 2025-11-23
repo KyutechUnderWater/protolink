@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <algorithm>
+#ifndef PROTOLINK__UTILS_HPP_
+#define PROTOLINK__UTILS_HPP_
+
+#include <boost/asio.hpp>
 #include <cstdint>
 #include <vector>
 
@@ -21,7 +24,8 @@ namespace protolink
 
 /**
  * @brief A wrapper class that manages the lifecycle of io_context and its worker thread.
- * @details Instantiating this class as a member variable automatically spawns a background thread for asynchronous operations.
+ * @details Instantiating this class as a member variable automatically spawns a background thread
+ * for asynchronous operations.
  */
 class IoContext
 {
@@ -109,3 +113,5 @@ public:
 };
 }  // namespace utils
 }  // namespace protolink
+
+#endif  // !PROTOLINK__UTILS_HPP_

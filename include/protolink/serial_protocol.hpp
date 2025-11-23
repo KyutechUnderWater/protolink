@@ -27,6 +27,24 @@ namespace protolink
 namespace serial_protocol
 {
 
+using port = boost::asio::serial_port;
+
+inline std::shared_ptr<boost::asio::serial_port> create_port(
+  protolink::IoContext & io_context, const std::string & device_file, const uint32_t & baud_rate)
+{
+  auto serial = std::make_shared<boost::asio::serial_port>(io_context.get(), device_file);
+  serial->set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+  serial->set_option(boost::asio::serial_port_base::character_size(8));
+  serial->set_option(
+    boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
+  serial->set_option(
+    boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
+  serial->set_option(
+    boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
+
+  return serial;
+}
+
 /**
  * @brief Publisher with serial
  */
@@ -35,22 +53,10 @@ class Publisher
 {
 public:
   explicit Publisher(
-    boost::asio::io_context & io_context, const std::string & device_file, const uint32_t baud_rate,
+    std::shared_ptr<boost::asio::serial_port> serial,
     const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial_pub"))
-  : logger(logger), serial_(io_context, device_file)
+  : logger(logger), serial_(serial)
   {
-    try {
-      serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
-      serial_.set_option(boost::asio::serial_port_base::character_size(8));
-      serial_.set_option(boost::asio::serial_port_base::flow_control(
-        boost::asio::serial_port_base::flow_control::none));
-      serial_.set_option(
-        boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
-      serial_.set_option(
-        boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
-    } catch (const std::exception & e) {
-      RCLCPP_ERROR(logger, "Open Error: %s", e.what());
-    }
   }
 
   const rclcpp::Logger logger;
@@ -68,11 +74,11 @@ public:
     std::vector<uint8_t> raw_bytes(raw_str.begin(), raw_str.end());
     std::vector<uint8_t> encoded = utils::Cobs::encode(raw_bytes);
 
-    boost::asio::write(serial_, boost::asio::buffer(encoded));
+    boost::asio::write(*serial_, boost::asio::buffer(encoded));
   }
 
 private:
-  boost::asio::serial_port serial_;
+  std::shared_ptr<boost::asio::serial_port> serial_;
 };
 
 /**
@@ -83,30 +89,16 @@ class Subscriber
 {
 public:
   explicit Subscriber(
-    boost::asio::io_context & io_context, const std::string & device_file, const uint32_t baud_rate,
-    std::function<void(const Proto &)> callback,
+    std::shared_ptr<boost::asio::serial_port> serial, std::function<void(const Proto &)> callback,
     const rclcpp::Logger & logger = rclcpp::get_logger("protolink_serial_sub"))
-  : logger(logger), serial_(io_context, device_file), callback_(callback)
+  : logger(logger), serial_(serial), callback_(callback)
   {
-    try {
-      serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
-      serial_.set_option(boost::asio::serial_port_base::character_size(8));
-      serial_.set_option(boost::asio::serial_port_base::flow_control(
-        boost::asio::serial_port_base::flow_control::none));
-      serial_.set_option(
-        boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
-      serial_.set_option(
-        boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
-
-      do_receive();
-    } catch (const std::exception & e) {
-      RCLCPP_ERROR(logger, "Open Error: %s", e.what());
-    }
+    do_receive();
   }
   const rclcpp::Logger logger;
 
 private:
-  boost::asio::serial_port serial_;
+  std::shared_ptr<boost::asio::serial_port> serial_;
   std::function<void(Proto)> callback_;
 
   boost::array<char, ReadChunkSize> read_buffer_;
@@ -116,7 +108,7 @@ private:
 
   void do_receive()
   {
-    serial_.async_read_some(
+    serial_->async_read_some(
       boost::asio::buffer(read_buffer_),
       boost::bind(
         &Subscriber::handler, this, boost::asio::placeholders::error,
