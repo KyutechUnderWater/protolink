@@ -137,11 +137,16 @@ function(add_protolink_message_from_ros_message MESSAGE_PACKAGE MESSAGE_TYPE)
     set(JINJA_TEMPLATE_CPP ${protolink_DIR}/template_converter.cpp.jinja)
   endif()
 
+  set(MSG_SOURCE_FILE "")
+  if(EXISTS "${CMAKE_BINARY_DIR}/../${MESSAGE_PACKAGE}/ament_cmake_core/stamps/${MESSAGE_TYPE}.msg.stamp")
+    set(MSG_SOURCE_FILE "${CMAKE_BINARY_DIR}/../${MESSAGE_PACKAGE}/ament_cmake_core/stamps/${MESSAGE_TYPE}.msg.stamp")
+  endif()
+
   add_custom_command(
     OUTPUT ${PROTO_FILE} ${CONVERSION_HEADER_FILE} ${CONVERSION_SOURCE_FILE}
     COMMAND python3 ${GENERATE_PROTO_SCRIPT} ${MESSAGE_PACKAGE}/${MESSAGE_TYPE} ${PROTO_FILE} ${CONVERSION_HEADER_FILE} ${CONVERSION_SOURCE_FILE}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${GENERATE_PROTO_SCRIPT} ${JINJA_TEMPLATE_HPP} ${JINJA_TEMPLATE_CPP}
+    DEPENDS ${GENERATE_PROTO_SCRIPT} ${JINJA_TEMPLATE_HPP} ${JINJA_TEMPLATE_CPP} ${MSG_SOURCE_FILE}
   )
 
   message(NOTICE "Generated protobuf message => ${PROTO_FILE}")
